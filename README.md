@@ -28,4 +28,4 @@ MIT license - See [LICENSE](LICENSE).
 
 ## How to cite
 
-You can cite the version on [arXiv]([TODO](http://arxiv.org/abs/2402.08290)http://arxiv.org/abs/2402.08290).
+You can cite the version on [arXiv](http://arxiv.org/abs/2402.08290).
