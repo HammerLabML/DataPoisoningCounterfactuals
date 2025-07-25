@@ -12,7 +12,8 @@ class DeepNeuralNetwork():
 
     def fit(self, X_train, y_train, n_epochs=200, verbose=False):
         # Fit model by minimizing loss function
-        self.model.compile(optimizer=self.solver, loss="binary_crossentropy", metrics=[])
+        loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        self.model.compile(optimizer=self.solver, loss=loss_fn, metrics=[])
         self.model.fit(X_train, y_train, epochs=n_epochs, verbose=verbose)
 
     def __call__(self, X):

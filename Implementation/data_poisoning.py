@@ -1,3 +1,6 @@
+"""
+Implementation of the proposed data poisoning method.
+"""
 import random
 import numpy as np
 from numpy.random import normal
@@ -43,7 +46,9 @@ def create_data_poisoning_local(clf, X_train, y_train, x_orig, y_orig, n_diverse
     return X_results, y_results, y_sensitive_results
 
 
-def create_data_poisoning(clf, X_train, y_train, y_target_label=None, y_train_sensitive=None, y_sensitive_target=0, n_diverse_cf=3, n_samples=50, n_perturbations=0, loc=0., scale=1., weighted_sampling=True):
+def create_data_poisoning(clf, X_train, y_train, y_target_label=None, y_train_sensitive=None,
+                          y_sensitive_target=0, n_diverse_cf=1, n_samples=50,
+                          n_perturbations=0, loc=0., scale=1., weighted_sampling=True):
     X_results = []
     y_results = []
     y_sensitive_results = []
@@ -59,12 +64,17 @@ def create_data_poisoning(clf, X_train, y_train, y_target_label=None, y_train_se
 
     if weighted_sampling is True:
         X_candidates_cf = dice_compute_cf_batch(clf, X_candiates, 1 - y_target_label, X_train, y_train, n_cf=1, verbose=False)      # Estimate distance to decision boundary
-        deltas_cf_size = np.linalg.norm(X_candidates_cf, 2, axis=1)
-        candidates_weight = 1. / (deltas_cf_size / np.sum(deltas_cf_size));candidates_weight = candidates_weight / np.sum(candidates_weight)
-        idx_pert = np.random.choice(range(X_candiates.shape[0]), min(n_samples, X_candiates.shape[0]), replace=False, p=candidates_weight)
+        deltas_cf_size = np.linalg.norm(X_candidates_cf, 2, axis=1) + 1e-5  # Avoid size=0
+        candidates_weight = 1. / (deltas_cf_size / np.sum(deltas_cf_size))
+        candidates_weight = candidates_weight / np.sum(candidates_weight)
+        
+        idx_pert = np.random.choice(range(X_candiates.shape[0]), min(n_samples, X_candiates.shape[0]),
+                                    replace=False, p=candidates_weight)
         if y_train_sensitive is not None:   # Are we supposed to consider sensitive attribute and make things worse for one group of individuals only
             idx_sensitive = np.argwhere(y_candiates_sensitive==y_sensitive_target).flatten().tolist()
-            p = 1 / (candidates_weight[idx_sensitive] / np.sum(candidates_weight[idx_sensitive]));p = p / np.sum(p)
+            p = 1 / (candidates_weight[idx_sensitive] / np.sum(candidates_weight[idx_sensitive]))
+            p = p / np.sum(p)
+            
             idx_pert = np.random.choice(idx_sensitive, min(n_samples, len(idx_sensitive)), replace=False, p=p)
     else:
         idx_pert = random.sample(range(X_candiates.shape[0]), min(n_samples, X_candiates.shape[0]))

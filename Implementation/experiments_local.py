@@ -8,10 +8,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score, confusion_matrix
 from imblearn.under_sampling import RandomUnderSampler
@@ -20,32 +16,24 @@ from sklearn.neural_network import MLPClassifier
 from dnn import DeepNeuralNetwork
 
 from datasets import load_benchmarkdata
-from cf_face import FaceExplainer
-from cf_ceml import CemlExplainer
 from cf_dice import DiceExplainer
 from cf_memory import MemoryExplainer
 from cf_proto import ProtoExplainer
 
 from data_poisoning import create_data_poisoning_local
 
-n_face_samples = 200
 n_folds = 5
 pos_class = 1
 neg_class = 0
 
 
 def get_model(model_desc, cf_desc):
-    if model_desc == "logreg":
-        return LogisticRegression(multi_class="multinomial")
-    elif model_desc == "dectree":
-        return DecisionTreeClassifier(max_depth=7)
+    if model_desc == "svc":
+        return LinearSVC()
     elif model_desc == "randomforest":
-        return RandomForestClassifier(max_depth=7)
+        return RandomForestClassifier(n_estimators=10, max_depth=7)
     elif model_desc == "dnn":
-        if cf_desc == "ceml":
-            return DeepNeuralNetwork()
-        else:
-            return MLPClassifier(hidden_layer_sizes=(128, 32))  # Works better but is not supported by CEML :(
+        return MLPClassifier(hidden_layer_sizes=(128, 32))
 
 
 def run_exp(data_desc, model_desc, cf_desc, apply_data_poisoning, consider_fairness_in_poisoning, percent_data_poisoning=.5, out_path=""):
@@ -126,18 +114,12 @@ def run_exp(data_desc, model_desc, cf_desc, apply_data_poisoning, consider_fairn
                     accuracies.append(f1_score(y_test, y_test_pred))
 
                     # Compute counterfactuals
-                    if cf_desc == "ceml":
-                        exp = CemlExplainer(clf)
-                    elif cf_desc == "dice":
+                    if cf_desc == "dice":
                         exp = DiceExplainer(clf, X_train, y_train)
                     elif cf_desc == "mem":
                         exp = MemoryExplainer(clf, X_train, y_train)
                     elif cf_desc == "proto":
                         exp = ProtoExplainer(clf, X_train, y_train)
-                    elif cf_desc == "face":
-                        idx_face = np.random.permutation(X_train.shape[0])  # Select a random subset of the training samples for FACE
-                        if len(idx_face) > n_face_samples:
-                            idx_face = idx_face[:n_face_samples]
 
                         X_feasible = X_train[idx_face, :]
                         y_feasible = y_train[idx_face]
@@ -155,10 +137,7 @@ def run_exp(data_desc, model_desc, cf_desc, apply_data_poisoning, consider_fairn
                                 continue
                         
                         try:
-                            if cf_desc == "face":
-                                xcf = exp.compute_counterfactual(x_orig, y_orig, y_target)
-                            else:
-                                xcf = exp.compute_counterfactual(x_orig, y_target)
+                            xcf = exp.compute_counterfactual(x_orig, y_target)
                             #print(xcf)
 
                             if cf_test_idx == i:    # Target sample for which the poisoning was done!
@@ -186,17 +165,10 @@ def run_exp(data_desc, model_desc, cf_desc, apply_data_poisoning, consider_fairn
 
 
 if __name__ == "__main__":
-    data_desc = "diabetes"
-    model_desc = "dnn"
     out_path = "my-exp-results"
 
     config_sets = []
-    for cf_desc in ["ceml", "mem", "dice", "proto", "face"]:
-        if cf_desc == "proto" and model_desc == "randomforest": # Too slow!
-            continue
-        if cf_desc == "ceml" and (model_desc == "knn" or model_desc == "randomforest"):  # CEML is too slow for some models
-            continue
-
+    for cf_desc in ["mem", "dice", "proto"]:
         for apply_data_poisoning in [True]:
             for percent_data_poisoning in [.1]:
                 config_sets.append({"data_desc": data_desc, "model_desc": model_desc, "cf_desc": cf_desc, "apply_data_poisoning": apply_data_poisoning, "consider_fairness_in_poisoning": False, "percent_data_poisoning": percent_data_poisoning, "out_path": out_path})

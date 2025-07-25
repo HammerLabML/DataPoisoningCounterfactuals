@@ -22,14 +22,18 @@ def compute_cf_batch(clf, X_orig, y_target, X_train, y_train, n_cf=1, verbose=Fa
         cf_result = cf_algo.generate_counterfactuals(X_orig, total_CFs=n_cf, desired_class="opposite", verbose=False)
 
         for i in range(len(X_orig)):
-            x_cf = cf_result.cf_examples_list[i].final_cfs_df[cols].to_numpy()
-            X_cfs.append(x_cf.flatten())
+            final_cf_df = cf_result.cf_examples_list[i].final_cfs_df
+            if final_cf_df is None:
+                X_cfs.append(np.zeros(len(cols)))
+            else:
+                x_cf = final_cf_df[cols].to_numpy()
+                X_cfs.append(x_cf.flatten())
 
         return X_cfs
     except Exception as ex:
         if verbose is True:
             print(ex)
-        return None
+        return [None]
 
 
 def compute_cf(clf, x, y_target, X_train, y_train, n_cf=3, verbose=True):
@@ -59,7 +63,7 @@ def compute_cf(clf, x, y_target, X_train, y_train, n_cf=3, verbose=True):
     except Exception as ex:
         if verbose is True:
             print(ex)
-        return None
+        return [None]
 
 
 class DiceExplainer():
@@ -70,4 +74,3 @@ class DiceExplainer():
 
     def compute_counterfactual(self, x, y_target):
         return compute_cf(self.clf, x, y_target, self.X_train, self.y_train)
-
