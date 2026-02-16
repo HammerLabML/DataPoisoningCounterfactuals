@@ -1,6 +1,6 @@
 # The Effect of Data Poisoning on Counterfactual Explanations
 
-This repository contains the implementation of the experiments as proposed in the paper [The Effect of Data Poisoning on Counterfactual Explanations](paper.pdf) by André Artelt, Shubham Sharma, Freddy Lecué, and Barbara Hammer.
+This repository contains the implementation of the experiments as proposed in the paper [The Effect of Data Poisoning on Counterfactual Explanations](https://doi.org/10.1016/j.inffus.2026.104237) by André Artelt, Shubham Sharma, Freddy Lecué, and Barbara Hammer.
 
 ## Abstract
 
@@ -39,4 +39,18 @@ MIT license - See [LICENSE](LICENSE).
 
 ## How to cite
 
-You can cite the version on [arXiv](http://arxiv.org/abs/2402.08290).
+Please cite the Journal version [10.1016/j.inffus.2026.104237](https://doi.org/10.1016/j.inffus.2026.104237) as follows:
+```bibtex
+@article{Artelt2026,
+  title     = {{The Effect of Data Poisoning on Counterfactual Explanations}},
+  author    = "Artelt, Andr{\'e} and Sharma, Shubham and Lecu{\'e}, Freddy and Hammer, Barbara",
+  doi = {10.1016/j.inffus.2026.104237},
+  url = {https://doi.org/10.1016/j.inffus.2026.104237},
+  journal   = "Inf. Fusion",
+  publisher = "Elsevier BV",
+  number    =  104237,
+  pages     = "104237",
+  month     =  feb,
+  year      =  2026,
+  language  = "en"
+}
